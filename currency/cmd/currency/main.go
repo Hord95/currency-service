@@ -1,9 +1,10 @@
 package main
 
 import (
+	currencyClient "github.com/vctrl/currency-service/currency/internal/clients/currency"
+	"github.com/vctrl/currency-service/currency/internal/config"
+	"github.com/vctrl/currency-service/currency/internal/db"
 	"github.com/vctrl/currency-service/currency/internal/handler"
-	"github.com/vctrl/currency-service/currency/internal/pkg/config"
-	currencyClient "github.com/vctrl/currency-service/currency/internal/pkg/currency"
 	"github.com/vctrl/currency-service/currency/internal/repository"
 	"github.com/vctrl/currency-service/currency/internal/service"
 	"github.com/vctrl/currency-service/pkg/currency"
@@ -17,6 +18,10 @@ import (
 
 	"google.golang.org/grpc"
 )
+
+// TODO:
+// - Добавить run() error по аналогии с migrator
+// - Вместо логов - возвращать ошибки
 
 func main() {
 	configPath := flag.String("config", "./config", "path to the config file")
@@ -33,25 +38,22 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	db, _, err := repository.NewDatabaseConnection(cfg.Database)
+	db, _, err := db.NewDatabaseConnection(cfg.Database)
 	if err != nil {
 		log.Fatalf("error init database connection: %v", err)
 	}
-	//if err := migrations.RunPgMigrations(dsn, cfg.Database.MigrationsPath); err != nil {
-	//	log.Fatalf("RunPgMigrations failed: %v", err)
-	//}
 
-	repo, err := repository.NewExchangeRateRepository(db)
+	repo, err := repository.NewCurrency(db)
 	if err != nil {
 		log.Fatalf("error init exchange rate repository: %v", err)
 	}
 
-	client, err := currencyClient.NewCurrencyClient(cfg.API, logger)
+	client, err := currencyClient.New(cfg.API, logger)
 	if err != nil {
 		log.Fatalf("error creating currency client: %v", err)
 	}
 
-	svc := service.NewCurrencyService(repo, client, logger)
+	svc := service.NewCurrency(repo, client, logger)
 
 	currencyServer := handler.NewCurrencyServer(svc, logger)
 

@@ -6,10 +6,10 @@ import (
 	"log"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/vctrl/currency-service/currency/internal/pkg/config"
-	"github.com/vctrl/currency-service/currency/internal/pkg/currency"
+	"github.com/vctrl/currency-service/currency/internal/clients/currency"
+	"github.com/vctrl/currency-service/currency/internal/config"
+	"github.com/vctrl/currency-service/currency/internal/db"
 	"github.com/vctrl/currency-service/currency/internal/repository"
 	"github.com/vctrl/currency-service/currency/internal/service"
 	"github.com/vctrl/currency-service/currency/internal/worker"
@@ -20,7 +20,8 @@ import (
 )
 
 // TODO:
-// - Добавить run() error по аналогии с gateway
+// - Добавить run() error по аналогии с migrator
+// - Вместо логов - возвращать ошибки
 
 func main() {
 	configPath := flag.String("config", "./config", "path to the config file")
@@ -31,15 +32,12 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	db, _, err := repository.NewDatabaseConnection(cfg.Database)
+	db, _, err := db.NewDatabaseConnection(cfg.Database)
 	if err != nil {
 		log.Fatalf("error init database connection: %v", err)
 	}
-	//if err := migrations.RunPgMigrations(dsn, cfg.Database.MigrationsPath); err != nil {
-	//	log.Fatalf("RunPgMigrations failed: %v", err)
-	//}
 
-	repo, err := repository.NewExchangeRate(db)
+	repo, err := repository.NewCurrency(db)
 	if err != nil {
 		log.Fatalf("error creating repository: %v", err)
 	}
@@ -50,16 +48,16 @@ func main() {
 		log.Fatalf("init logger: %w", err)
 	}
 
-	client, err := currency.NewClient(cfg.API, logger)
+	client, err := currency.New(cfg.API, logger)
 	if err != nil {
 		log.Fatalf("error creating currency client: %v", err)
 	}
 
-	svc := service.NewCurrencyService(repo, client, logger)
+	svc := service.NewCurrency(repo, client, logger)
 
 	c := cron.New()
 
-	currencyWorker := worker.NewCurrencyWorker(cfg.Worker, svc, c, logger)
+	currencyWorker := worker.NewCurrency(cfg.Worker, svc, c, logger)
 
 	if err != nil {
 		log.Fatalf("error adding cron job: %v", err)
@@ -75,9 +73,6 @@ func main() {
 	<-ctx.Done()
 
 	log.Println("shutting down gracefully, press Ctrl+C again to force")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
 	currencyWorker.Stop()
 }

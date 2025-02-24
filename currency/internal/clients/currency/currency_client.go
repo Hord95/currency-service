@@ -10,25 +10,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vctrl/currency-service/currency/internal/pkg/config"
+	"github.com/vctrl/currency-service/currency/internal/config"
 
 	"go.uber.org/zap"
 )
 
-// Вытащить в clients/currency
-type CurrencyClient struct {
+type Currency struct {
 	baseURL    *url.URL
 	httpClient *http.Client
 	logger     *zap.Logger
 }
 
-func NewClient(cfg config.APIConfig, logger *zap.Logger) (CurrencyClient, error) {
+func New(cfg config.APIConfig, logger *zap.Logger) (Currency, error) {
 	baseURL, err := url.Parse(cfg.BaseURL)
 	if err != nil {
-		return CurrencyClient{}, fmt.Errorf("invalid base URL: %w", err)
+		return Currency{}, fmt.Errorf("invalid base URL: %w", err)
 	}
 
-	return CurrencyClient{
+	return Currency{
 		baseURL: baseURL,
 		httpClient: &http.Client{
 			Timeout: time.Duration(cfg.TimeoutSeconds) * time.Second,
@@ -42,7 +41,7 @@ type RatesResponse struct {
 	Rub  map[string]float64 `json:"rub"`
 }
 
-func (c *CurrencyClient) FetchCurrentRates(ctx context.Context, currency string) (RatesResponse, error) {
+func (c *Currency) FetchCurrentRates(ctx context.Context, currency string) (RatesResponse, error) {
 	relativeCurrencyPath, _ := url.Parse(fmt.Sprintf("/v1/currencies/%s.json", strings.ToLower(currency)))
 	fullURL := *c.baseURL.ResolveReference(relativeCurrencyPath)
 

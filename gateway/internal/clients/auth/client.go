@@ -70,7 +70,7 @@ func (c *Client) Ping() (string, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("read body: %w", err)
 	}
 
 	return string(body), nil

@@ -25,7 +25,10 @@ type RateRecordDTO struct {
 	Rate float32
 }
 
-// Должно быть в handler
+const (
+	DefaultBaseCurrency = "RUB"
+)
+
 func CurrencyRequestDTOFromProtobuf(req *currency.RateRequest, baseCurrency string) *CurrencyRequestDTO {
 	return &CurrencyRequestDTO{
 		BaseCurrency:   baseCurrency,
@@ -35,7 +38,6 @@ func CurrencyRequestDTOFromProtobuf(req *currency.RateRequest, baseCurrency stri
 	}
 }
 
-// Должно быть в handler
 func (dto *CurrencyResponseDTO) ToProtobuf() *currency.RateResponse {
 	rateRecords := make([]*currency.RateRecord, 0, len(dto.Rates))
 	for _, record := range dto.Rates {

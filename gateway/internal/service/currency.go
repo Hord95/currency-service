@@ -20,7 +20,10 @@ func NewCurrency(currencyClient currency.CurrencyServiceClient) CurrencyService 
 	}
 }
 
-func (svc *CurrencyService) GetCurrencyRates(ctx context.Context, request dto.ParsedCurrencyRequest) (*dto.CurrencyResponse, error) {
+func (svc *CurrencyService) GetCurrencyRates(
+	ctx context.Context,
+	request dto.ParsedCurrencyRequest,
+) (*dto.CurrencyResponse, error) {
 	pbResp, err := svc.currencyClient.GetRate(
 		ctx, &currency.RateRequest{
 			Currency: request.Currency,

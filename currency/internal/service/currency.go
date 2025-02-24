@@ -6,30 +6,32 @@ import (
 	"strings"
 	"time"
 
+	"github.com/vctrl/currency-service/currency/internal/clients/currency"
 	"github.com/vctrl/currency-service/currency/internal/dto"
-	"github.com/vctrl/currency-service/currency/internal/pkg/currency"
 	"github.com/vctrl/currency-service/currency/internal/repository"
 
 	"go.uber.org/zap"
 )
 
-type CurrencyService struct {
-	currencyRepo repository.ExchangeRateRepository
-	client       currency.CurrencyClient
+type Currency struct {
+	currencyRepo repository.Currency
+	client       currency.Currency
 	logger       *zap.Logger
 }
 
-func NewCurrencyService(repo repository.ExchangeRateRepository,
-	client currency.CurrencyClient,
-	logger *zap.Logger) CurrencyService {
-	return CurrencyService{
+func NewCurrency(
+	repo repository.Currency,
+	client currency.Currency,
+	logger *zap.Logger,
+) Currency {
+	return Currency{
 		currencyRepo: repo,
 		client:       client,
 		logger:       logger,
 	}
 }
 
-func (s *CurrencyService) GetCurrencyRatesInInterval(ctx context.Context, reqDTO *dto.CurrencyRequestDTO) ([]repository.CurrencyRate, error) {
+func (s *Currency) GetCurrencyRatesInInterval(ctx context.Context, reqDTO *dto.CurrencyRequestDTO) ([]repository.CurrencyRate, error) {
 	reqDTO.TargetCurrency = strings.ToLower(reqDTO.TargetCurrency)
 	rates, err := s.currencyRepo.FindInInterval(ctx, reqDTO)
 	if err != nil {
@@ -39,7 +41,7 @@ func (s *CurrencyService) GetCurrencyRatesInInterval(ctx context.Context, reqDTO
 	return rates, nil
 }
 
-func (s *CurrencyService) FetchAndSaveCurrencyRates(ctx context.Context, baseCurrency string) error {
+func (s *Currency) FetchAndSaveCurrencyRates(ctx context.Context, baseCurrency string) error {
 	rates, err := s.client.FetchCurrentRates(ctx, baseCurrency)
 	if err != nil {
 		return fmt.Errorf("client.FetchCurrentRates: %s", err)

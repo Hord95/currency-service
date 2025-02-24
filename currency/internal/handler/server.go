@@ -9,11 +9,11 @@ import (
 
 type CurrencyServer struct {
 	currency.UnimplementedCurrencyServiceServer
-	service service.CurrencyService
+	service service.Currency
 	logger  *zap.Logger
 }
 
-func NewCurrencyServer(svc service.CurrencyService, logger *zap.Logger) CurrencyServer {
+func NewCurrencyServer(svc service.Currency, logger *zap.Logger) CurrencyServer {
 	return CurrencyServer{
 		service: svc,
 		logger:  logger,

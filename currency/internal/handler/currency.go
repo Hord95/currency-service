@@ -10,13 +10,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// Должна быть в dto
-const (
-	defaultBaseCurrency = "RUB"
-)
-
 func (s CurrencyServer) GetRate(ctx context.Context, request *currency.RateRequest) (*currency.RateResponse, error) {
-	reqDTO := dto.CurrencyRequestDTOFromProtobuf(request, defaultBaseCurrency)
+	reqDTO := dto.CurrencyRequestDTOFromProtobuf(request, dto.DefaultBaseCurrency)
 
 	rates, err := s.service.GetCurrencyRatesInInterval(ctx, reqDTO)
 	if err != nil {

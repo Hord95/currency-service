@@ -6,8 +6,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Вытащить в internal
-
 type ServiceConfig struct {
 	ServerPort string `mapstructure:"server_port"`
 }
@@ -24,6 +22,11 @@ type DatabaseConfig struct {
 	Password       string `mapstructure:"password"`
 	Name           string `mapstructure:"name"`
 	MigrationsPath string `mapstructure:"migrations_path"`
+}
+
+func (dc DatabaseConfig) ToDSN() string {
+	// todo
+	return ""
 }
 
 type WorkerConfig struct {

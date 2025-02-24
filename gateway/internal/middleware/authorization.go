@@ -1,23 +1,26 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strings"
-
-	"github.com/vctrl/currency-service/gateway/internal/clients/auth"
 
 	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
 )
 
+type authClient interface {
+	ValidateToken(ctx context.Context, token string) error
+}
+
 type Authorization struct {
-	authClient *auth.Client //todo interface
+	authClient authClient
 	skipper    func(*gin.Context) bool
 	logger     *zap.Logger
 }
 
-func NewAuthorization(authClient *auth.Client, skipper func(*gin.Context) bool, logger *zap.Logger) Authorization {
+func NewAuthorization(authClient authClient, skipper func(*gin.Context) bool, logger *zap.Logger) Authorization {
 	return Authorization{
 		authClient: authClient,
 		skipper:    skipper,

@@ -11,6 +11,7 @@ func RunPgMigrations(dsn string) error {
 		return errors.New("no DSN provided")
 	}
 
+	path := ""
 	// переделать на источник iofs
 	// https://github.com/golang-migrate/migrate/blob/master/source/iofs/example_test.go
 	m, err := migrate.New(

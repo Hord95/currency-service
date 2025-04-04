@@ -25,7 +25,7 @@ func (svc *CurrencyService) GetCurrencyRates(
 	request dto.ParsedCurrencyRequest,
 ) (*dto.CurrencyResponse, error) {
 	pbResp, err := svc.currencyClient.GetRate(
-		ctx, &currency.RateRequest{
+		ctx, &currency.GetRateRequest{
 			Currency: request.Currency,
 			DateFrom: timestamppb.New(request.DateFrom),
 			DateTo:   timestamppb.New(request.DateTo),

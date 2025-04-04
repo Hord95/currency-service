@@ -21,7 +21,7 @@ install-tools:
 	@echo "Checking and installing necessary tools..."
 	@if ! [ -x "$$(command -v $(PROTOC_GEN_GO))" ]; then \
 		echo "Installing protoc-gen-go..."; \
-		go install google.golang.org/protobuf/cmd/protoc-gen-go@latest; \
+		go install google.golang.org/protobuf/cmd/protoc-gen-go@latest; \ # для учебного проекта норм latest
 	fi
 	@if ! [ -x "$$(command -v $(PROTOC_GEN_GO_GRPC))" ]; then \
 		echo "Installing protoc-gen-go-grpc..."; \
@@ -44,3 +44,6 @@ test:
 generate-test-data:
 	@echo "Generating and inserting test data into the database..."
 	go run $(GEN_TEST_DATA_SCRIPT)
+
+mocks:
+	go generate ./...

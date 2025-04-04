@@ -2,6 +2,7 @@ package currency
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,6 +32,9 @@ func New(cfg config.APIConfig, logger *zap.Logger) (Currency, error) {
 		baseURL: baseURL,
 		httpClient: &http.Client{
 			Timeout: time.Duration(cfg.TimeoutSeconds) * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // todo ⚠️ НЕ ДЛЯ ПРОДА
+			},
 		},
 		logger: logger,
 	}, nil
@@ -39,6 +43,11 @@ func New(cfg config.APIConfig, logger *zap.Logger) (Currency, error) {
 type RatesResponse struct {
 	Date string             `json:"date"`
 	Rub  map[string]float64 `json:"rub"`
+}
+
+func (c *Currency) FetchRatesByDate(ctx context.Context, date, currency string) { // todo
+	// todo set metrics for date with value
+
 }
 
 func (c *Currency) FetchCurrentRates(ctx context.Context, currency string) (RatesResponse, error) {
@@ -57,7 +66,7 @@ func (c *Currency) FetchCurrentRates(ctx context.Context, currency string) (Rate
 		return RatesResponse{}, fmt.Errorf("failed to make request to currency API: %w", err)
 	}
 
-	defer func() { // todo use logger in same places in code
+	defer func() {
 		err := resp.Body.Close()
 		if err != nil {
 			c.logger.Error("failed to close response body", zap.Error(err))
@@ -78,5 +87,6 @@ func (c *Currency) FetchCurrentRates(ctx context.Context, currency string) (Rate
 		return RatesResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
+	// todo set metrics for date with value time.Now()
 	return rateResponse, nil
 }

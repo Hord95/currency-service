@@ -1,3 +1,3 @@
 package main
 
-//go:generate protoc --proto_path=proto --go_out=$(PROTO_OUT) --go-grpc_out=$(PROTO_OUT) $(PROTO_SRC)
+//go:generate protoc --proto_path=proto --go_out=. --go-grpc_out=. proto/currency/currency_service.proto

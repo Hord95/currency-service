@@ -60,6 +60,9 @@ services:
         - BUILD_TARGET=./currency/cmd/currency/main.go
     volumes:
       - ./deployment/local:/deployment/local
+    ports:
+      - "8081:8081"
+      - "8090:8090"
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,3 +79,41 @@ services:
     ports:
       - "8080:8080"
     command: ["--config=/deployment/local/gateway-local-config.yaml"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - /Users/vectoreal/Repos/github.com/vctrl/currency-service/currency/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    depends_on:
+      - currency
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./monitoring/grafana:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8083:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped

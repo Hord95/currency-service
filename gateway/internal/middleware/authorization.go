@@ -51,7 +51,7 @@ func (auth *Authorization) Authorize() gin.HandlerFunc {
 				zap.Error(err),
 			)
 
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			return
 		}
 

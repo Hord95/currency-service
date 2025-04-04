@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	currencyClient "github.com/vctrl/currency-service/currency/internal/clients/currency"
 	"github.com/vctrl/currency-service/currency/internal/config"
 	"github.com/vctrl/currency-service/currency/internal/db"
@@ -8,6 +11,10 @@ import (
 	"github.com/vctrl/currency-service/currency/internal/repository"
 	"github.com/vctrl/currency-service/currency/internal/service"
 	"github.com/vctrl/currency-service/pkg/currency"
+	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"flag"
 	"fmt"
@@ -22,6 +29,39 @@ import (
 // TODO:
 // - Добавить run() error по аналогии с migrator
 // - Вместо логов - возвращать ошибки
+
+var (
+	requestCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "currency_requests_total",
+			Help: "Total number of requests handled by the currency service",
+		},
+		[]string{"method"},
+	)
+
+	requestDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "currency_request_duration_seconds",
+			Help:    "Histogram of response times for requests",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"method"},
+	)
+
+	appUptime = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "currency_service_uptime_seconds",
+			Help: "Time since service start in seconds",
+		},
+	)
+)
+
+func init() {
+	// Регистрируем метрики
+	prometheus.MustRegister(requestCount)
+	prometheus.MustRegister(requestDuration)
+	prometheus.MustRegister(appUptime)
+}
 
 func main() {
 	configPath := flag.String("config", "./config", "path to the config file")
@@ -55,11 +95,50 @@ func main() {
 
 	svc := service.NewCurrency(repo, client, logger)
 
-	currencyServer := handler.NewCurrencyServer(svc, logger)
+	// todo
+	//metrics := initMetrics()
+	//
+	//middleware := initMiddleware(metrics)
 
-	if err := startGRPCServer(cfg, currencyServer); err != nil {
-		log.Fatalf("Error starting GRPC server: %s", err)
-	}
+	// todo apply middleware
+
+	currencyServer := handler.NewCurrencyServer(svc,
+		logger,
+		requestCount,
+		requestDuration,
+		appUptime,
+		/*metrics*/)
+
+	go func() {
+		if err := startGRPCServer(cfg, currencyServer); err != nil {
+			log.Fatalf("Error starting GRPC server: %s", err)
+		}
+	}()
+
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		log.Println("Prometheus metrics server running on :8081")
+		if err := http.ListenAndServe(":8081", nil); err != nil {
+			log.Fatalf("Error starting Prometheus metrics server: %s", err)
+		}
+	}()
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	go func() {
+		startTime := time.Now()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				appUptime.Set(time.Since(startTime).Seconds())
+				time.Sleep(5 * time.Second)
+			}
+		}
+	}()
+
+	select {} // Блокируем main() чтобы горутины работали // todo graceful shutdown
 }
 
 func startGRPCServer(cfg config.AppConfig, srv handler.CurrencyServer) error {

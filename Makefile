@@ -8,13 +8,20 @@ GEN_TEST_DATA_SCRIPT=./currency/internal/scripts/generate_test_data.go
 
 .PHONY: all build run test proto
 
+# air для hot reload https://github.com/air-verse/air
+
 all: build
 
+# Альтернатива таргету proto (+ generate.go)
+gen:
+	go generate ./...
+
+# Лучше убрать latest из версия внешних зависимостей.
 install-tools:
 	@echo "Checking and installing necessary tools..."
 	@if ! [ -x "$$(command -v $(PROTOC_GEN_GO))" ]; then \
 		echo "Installing protoc-gen-go..."; \
-		go install google.golang.org/protobuf/cmd/protoc-gen-go@latest; \
+		go install google.golang.org/protobuf/cmd/protoc-gen-go@latest; \ # для учебного проекта норм latest
 	fi
 	@if ! [ -x "$$(command -v $(PROTOC_GEN_GO_GRPC))" ]; then \
 		echo "Installing protoc-gen-go-grpc..."; \
@@ -32,8 +39,11 @@ run: build
 	./bin/app
 
 test:
-	go test -v ./...
+	go test -v ./... -cover
 
 generate-test-data:
 	@echo "Generating and inserting test data into the database..."
 	go run $(GEN_TEST_DATA_SCRIPT)
+
+mocks:
+	go generate ./...

@@ -21,7 +21,7 @@ type UserRepository struct {
 	mu    *sync.RWMutex
 }
 
-func NewUserRepository() UserRepository {
+func NewUser() UserRepository {
 	return UserRepository{
 		users: make(map[string]User),
 		mu:    &sync.RWMutex{},
@@ -29,16 +29,13 @@ func NewUserRepository() UserRepository {
 }
 
 func (repo *UserRepository) AddUser(user User) error {
-	repo.mu.RLock()
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
 	if _, exists := repo.users[user.Login]; exists {
 		return ErrUserAlreadyExist
 	}
-
-	repo.mu.RUnlock()
-
-	repo.mu.Lock()
 	repo.users[user.Login] = user
-	repo.mu.Unlock()
 
 	return nil
 }

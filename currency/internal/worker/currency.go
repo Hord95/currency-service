@@ -5,42 +5,44 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/vctrl/currency-service/currency/internal/pkg/config"
+	"github.com/vctrl/currency-service/currency/internal/config"
 	"github.com/vctrl/currency-service/currency/internal/service"
 
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
 
-type CurrencyWorker struct {
-	CurrencyService service.CurrencyService
-	Cron            *cron.Cron
-	Schedule        string
-	BaseCurrency    string
-	TargetCurrency  string
+type Currency struct {
+	currencyService service.Currency
+	cron            *cron.Cron
+	schedule        string
+	baseCurrency    string
+	targetCurrency  string
 	logger          *zap.Logger
 }
 
-func NewCurrencyWorker(cfg config.WorkerConfig,
-	service service.CurrencyService,
+func NewCurrency(
+	cfg config.WorkerConfig,
+	service service.Currency,
 	cron *cron.Cron,
-	logger *zap.Logger) *CurrencyWorker {
-	return &CurrencyWorker{
-		CurrencyService: service,
-		Cron:            cron,
-		Schedule:        cfg.Schedule,
-		BaseCurrency:    cfg.CurrencyPair.BaseCurrency,
-		TargetCurrency:  cfg.CurrencyPair.TargetCurrency,
+	logger *zap.Logger,
+) *Currency {
+	return &Currency{
+		currencyService: service,
+		cron:            cron,
+		schedule:        cfg.Schedule,
+		baseCurrency:    cfg.CurrencyPair.BaseCurrency,
+		targetCurrency:  cfg.CurrencyPair.TargetCurrency,
 		logger:          logger,
 	}
 }
 
-func (w *CurrencyWorker) StartFetchingCurrencyRates() error {
+func (w *Currency) StartFetchingCurrencyRates() error {
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5) // todo move to config
 		defer cancel()
 
-		err := w.CurrencyService.FetchAndSaveCurrencyRates(ctx, w.BaseCurrency)
+		err := w.currencyService.FetchAndSaveCurrencyRates(ctx, w.baseCurrency)
 
 		if err != nil {
 			w.logger.Error(
@@ -51,18 +53,18 @@ func (w *CurrencyWorker) StartFetchingCurrencyRates() error {
 		}
 	}()
 
-	_, err := w.Cron.AddFunc(
-		w.Schedule, func() {
+	_, err := w.cron.AddFunc(
+		w.schedule, func() {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5) // todo move to config
 			defer cancel()
 
-			err := w.CurrencyService.FetchAndSaveCurrencyRates(ctx, w.BaseCurrency)
+			err := w.currencyService.FetchAndSaveCurrencyRates(ctx, w.baseCurrency)
 			if err != nil {
 				w.logger.Error(
 					"Failed to fetch currency rate on scheduled run",
 					zap.Time("timestamp", time.Now()),
 					zap.Error(err),
-					zap.String("schedule", w.Schedule),
+					zap.String("schedule", w.schedule),
 				)
 			}
 		},
@@ -72,11 +74,11 @@ func (w *CurrencyWorker) StartFetchingCurrencyRates() error {
 		return fmt.Errorf("Cron.AddFunc: %w", err)
 	}
 
-	w.Cron.Start()
+	w.cron.Start()
 
 	return nil
 }
 
-func (w *CurrencyWorker) Stop() {
-	w.Cron.Stop()
+func (w *Currency) Stop() {
+	w.cron.Stop()
 }

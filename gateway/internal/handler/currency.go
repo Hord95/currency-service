@@ -11,8 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) GetCurrencyRates(c *gin.Context) {
-	var req dto.CurrencyRequest
+type currencyRequest struct {
+	Currency string `form:"currency" binding:"required"`
+	DateFrom string `form:"date_from" binding:"required,datetime=2006-01-02"`
+	DateTo   string `form:"date_to" binding:"required,datetime=2006-01-02"`
+}
+
+func (s *controller) GetCurrencyRates(c *gin.Context) {
+	var req currencyRequest
 	err := c.BindQuery(&req)
 	if err != nil {
 		s.logger.Error("Error binding request parameters", zap.Error(err))
@@ -38,7 +44,7 @@ func (s *Server) GetCurrencyRates(c *gin.Context) {
 		DateTo:   dateTo,
 	}
 
-	data, err := s.CurrencyService.GetCurrencyRates(c.Request.Context(), parsedCurrencyRequest)
+	data, err := s.currencyService.GetCurrencyRates(c.Request.Context(), parsedCurrencyRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

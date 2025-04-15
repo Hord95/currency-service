@@ -6,14 +6,14 @@ import (
 	"github.com/golang-migrate/migrate"
 )
 
-func RunPgMigrations(dsn, path string) error {
-	if path == "" {
-		return errors.New("no migrations path provided")
-	}
+func RunPgMigrations(dsn string) error {
 	if dsn == "" {
 		return errors.New("no DSN provided")
 	}
 
+	path := ""
+	// переделать на источник iofs
+	// https://github.com/golang-migrate/migrate/blob/master/source/iofs/example_test.go
 	m, err := migrate.New(
 		path,
 		dsn,

@@ -25,7 +25,11 @@ type RateRecordDTO struct {
 	Rate float32
 }
 
-func CurrencyRequestDTOFromProtobuf(req *currency.RateRequest, baseCurrency string) *CurrencyRequestDTO {
+const (
+	DefaultBaseCurrency = "RUB"
+)
+
+func CurrencyRequestDTOFromProtobuf(req *currency.GetRateRequest, baseCurrency string) *CurrencyRequestDTO {
 	return &CurrencyRequestDTO{
 		BaseCurrency:   baseCurrency,
 		TargetCurrency: req.Currency,
@@ -34,7 +38,7 @@ func CurrencyRequestDTOFromProtobuf(req *currency.RateRequest, baseCurrency stri
 	}
 }
 
-func (dto *CurrencyResponseDTO) ToProtobuf() *currency.RateResponse {
+func (dto *CurrencyResponseDTO) ToProtobuf() *currency.GetRateResponse {
 	rateRecords := make([]*currency.RateRecord, 0, len(dto.Rates))
 	for _, record := range dto.Rates {
 		rateRecords = append(
@@ -45,7 +49,7 @@ func (dto *CurrencyResponseDTO) ToProtobuf() *currency.RateResponse {
 		)
 	}
 
-	return &currency.RateResponse{
+	return &currency.GetRateResponse{
 		Currency: dto.Currency,
 		Rates:    rateRecords,
 	}

@@ -14,15 +14,18 @@ type CurrencyService struct {
 	currencyClient currency.CurrencyServiceClient
 }
 
-func NewCurrencyService(currencyClient currency.CurrencyServiceClient) CurrencyService {
+func NewCurrency(currencyClient currency.CurrencyServiceClient) CurrencyService {
 	return CurrencyService{
 		currencyClient: currencyClient,
 	}
 }
 
-func (svc *CurrencyService) GetCurrencyRates(ctx context.Context, request dto.ParsedCurrencyRequest) (*dto.CurrencyResponse, error) {
+func (svc *CurrencyService) GetCurrencyRates(
+	ctx context.Context,
+	request dto.ParsedCurrencyRequest,
+) (*dto.CurrencyResponse, error) {
 	pbResp, err := svc.currencyClient.GetRate(
-		ctx, &currency.RateRequest{
+		ctx, &currency.GetRateRequest{
 			Currency: request.Currency,
 			DateFrom: timestamppb.New(request.DateFrom),
 			DateTo:   timestamppb.New(request.DateTo),

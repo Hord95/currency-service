@@ -2,12 +2,6 @@ package dto
 
 import "time"
 
-type CurrencyRequest struct {
-	Currency string `form:"currency" binding:"required"`
-	DateFrom string `form:"date_from" binding:"required,datetime=2006-01-02"`
-	DateTo   string `form:"date_to" binding:"required,datetime=2006-01-02"`
-}
-
 type ParsedCurrencyRequest struct {
 	Currency string
 	DateFrom time.Time

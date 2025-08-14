@@ -96,4 +96,4 @@ Fetch currency rates by sending a `GET` request. Include the `Authorization` hea
 - **Authorization Token**: Ensure that the token from the login step is used in the `Authorization` header of the third request.
 - **Content-Type Header**: The `Content-Type` header should be set to `application/json` for `POST` requests to specify that the request body contains JSON data.
 
-These steps assume the API is running locally on `localhost:8080`. Adjust the host and port as necessary if your API is hosted elsewhere.
+These steps assume the API is running locally on `localhost:8080`. Adjust the host and port as necessary if your API is hosted elsewhere.# currency-service

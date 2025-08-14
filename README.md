@@ -97,3 +97,4 @@ Fetch currency rates by sending a `GET` request. Include the `Authorization` hea
 - **Content-Type Header**: The `Content-Type` header should be set to `application/json` for `POST` requests to specify that the request body contains JSON data.
 
 These steps assume the API is running locally on `localhost:8080`. Adjust the host and port as necessary if your API is hosted elsewhere.# currency-service
+# currency-service

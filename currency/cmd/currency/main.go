@@ -102,7 +102,7 @@ func main() {
 
 	// todo apply middleware
 
-	currencyServer := handler.NewCurrencyServer(svc,
+	currencyServer := handler.NewCurrencyServer(&svc,
 		logger,
 		requestCount,
 		requestDuration,

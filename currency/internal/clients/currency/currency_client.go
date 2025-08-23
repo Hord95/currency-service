@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vctrl/currency-service/currency/internal/config"
+	"github.com/Hord95/currency-service/currency/internal/config"
 
 	"go.uber.org/zap"
 )

@@ -1,4 +1,4 @@
-module github.com/vctrl/currency-service
+module github.com/Hord95/currency-service
 
 go 1.23.1
 
